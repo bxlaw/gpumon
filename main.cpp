@@ -147,7 +147,7 @@ private:
         file.append(path);
 
         std::ifstream input(file);
-        if (input.is_open()) {
+        if (!input.is_open()) {
             return "0";
         }
 
