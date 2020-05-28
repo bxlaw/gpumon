@@ -10,3 +10,7 @@ gpumon is built in the usual CMake way:
 ```bash
 mkdir build && cd build && cmake .. && make
 ```
+
+Run `./gpumon` to start. Quit by pressing the `q` key, the `Esc` key, `Ctrl-C` or `Ctrl-D`.
+
+Passing the argument `-u n` sets the update interval to `n` seconds. Negative `n` will only update on key presses.
