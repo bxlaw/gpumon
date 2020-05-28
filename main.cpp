@@ -145,7 +145,12 @@ private:
     {
         auto file = m_path;
         file.append(path);
+
         std::ifstream input(file);
+        if (input.is_open()) {
+            return "0";
+        }
+
         std::string ret;
         std::getline(input, ret);
         return ret;
