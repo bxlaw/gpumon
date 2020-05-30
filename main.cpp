@@ -52,9 +52,14 @@ public:
     device(std::string_view path)
         : m_path(path)
     {
-        auto v = read_file("mem_info_vram_total");
-        m_vram = std::stoull(v);
+        m_vram = std::stoull(read_file("mem_info_vram_total"));
         m_vram_str = '/' + std::to_string(m_vram / (1024ull * 1024ull)) + "MiB";
+
+        m_gtt = std::stoull(read_file("mem_info_gtt_total"));
+        m_gtt_str = '/' + std::to_string(m_gtt / (1024ull * 1024ull)) + "MiB";
+
+        m_vis_vram = std::stoull(read_file("mem_info_vis_vram_total"));
+        m_vis_vram_str = '/' + std::to_string(m_vis_vram / (1024ull * 1024ull)) + "MiB";
 
         m_power_min = std::stoull(read_file("hwmon/hwmon1/power1_cap_min"));
         m_power_max = std::stoull(read_file("hwmon/hwmon1/power1_cap_max"));
@@ -79,6 +84,28 @@ public:
         u /= 1024ull * 1024ull;
 
         used = std::to_string(u) + m_vram_str;
+        return std::make_pair(used, pc);
+    }
+
+    std::pair<std::string, double> gtt() const
+    {
+        auto used = read_file("mem_info_gtt_used");
+        auto u = std::stoull(used);
+        auto pc = static_cast<double>(u) / static_cast<double>(m_gtt);
+        u /= 1024ull * 1024ull;
+
+        used = std::to_string(u) + m_gtt_str;
+        return std::make_pair(used, pc);
+    }
+
+    std::pair<std::string, double> vis_vram() const
+    {
+        auto used = read_file("mem_info_vis_vram_used");
+        auto u = std::stoull(used);
+        auto pc = static_cast<double>(u) / static_cast<double>(m_vis_vram);
+        u /= 1024ull * 1024ull;
+
+        used = std::to_string(u) + m_vis_vram_str;
         return std::make_pair(used, pc);
     }
 
@@ -159,10 +186,14 @@ private:
 
     std::string m_path;
     std::string m_vram_str;
+    std::string m_gtt_str;
+    std::string m_vis_vram_str;
 
     using ull = unsigned long long;
 
     ull m_vram;
+    ull m_gtt;
+    ull m_vis_vram;
     ull m_power_min;
     ull m_power_max;
     ull m_temp_crit;
@@ -213,6 +244,8 @@ void draw_labels()
     set_color(color::type::label);
     mvaddstr(++row, hpad, "GPU busy:");
     mvaddstr(++row, hpad, "GPU vram:");
+    mvaddstr(++row, hpad, "GTT:");
+    mvaddstr(++row, hpad, "CPU Vis:");
     mvaddstr(++row, hpad, "Power draw:");
     mvaddstr(++row, hpad, "Temperature:");
     mvaddstr(++row, hpad, "Fan speed:");
@@ -330,6 +363,12 @@ int main(int argc, char **argv)
 
         auto [mem, mem_pc] = dev.vram();
         draw_bar(++row, text_len, bar_width, mem_pc, mem);
+
+        auto [gtt, gtt_pc] = dev.gtt();
+        draw_bar(++row, text_len, bar_width, gtt_pc, gtt);
+
+        auto [vis, vis_pc] = dev.vis_vram();
+        draw_bar(++row, text_len, bar_width, vis_pc, vis);
 
         auto [pwr, pwr_pc] = dev.power();
         draw_bar(++row, text_len, bar_width, pwr_pc, pwr);
