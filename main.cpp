@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <iostream>
 #include <string>
 
 namespace {
@@ -223,6 +224,15 @@ void draw_labels()
     remove_color(color::type::label);
 }
 
+void printHelp(std::string_view progName)
+{
+    std::cout << "Usage: " << progName << " [options]\n"
+        "Released under the GNU GPLv3\n\n"
+        "  -n, --no-color  disable colors\n"
+        "  -u, --update=N  set automatic updates to N seconds (default 2)\n"
+        "  -h, --help      display this message\n";
+}
+
 void handle_winch()
 {
     winsize w;
@@ -253,14 +263,18 @@ int main(int argc, char **argv)
     const option options[] = {
         {"update", required_argument, nullptr, 'u'},
         {"no-color", no_argument, nullptr, 'n'},
+        {"help", no_argument, nullptr, 'h'},
         {nullptr, 0, nullptr, 0}
     };
 
     int sleep_time = 2;
 
     int c;
-    while ((c = getopt_long(argc, argv, "nu:", options, nullptr)) != -1) {
+    while ((c = getopt_long(argc, argv, "hnu:", options, nullptr)) != -1) {
         switch (c) {
+        case 'h':
+            printHelp(argv[0]);
+            return EXIT_SUCCESS;
         case 'n':
             color::use_color = false;
             break;
