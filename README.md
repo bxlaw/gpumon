@@ -1,6 +1,8 @@
 # gpumon
 ncurses based gpu monitor for amdgpu/linux
 
+![screenshot](https://github.com/bxlaw/gpumon/blob/master/Screenshot%20from%202020-05-30%2013-35-36.png)
+
 ## dependencies
 - CMake + C++17 compiler
 - ncurses
