@@ -281,6 +281,7 @@ int main(int argc, char **argv)
     timeout(sleep_time*1000);
     noecho();
     curs_set(0);
+    keypad(stdscr, true);
     clear();
 
     color::use_color &= has_colors();
