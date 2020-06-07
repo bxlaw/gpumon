@@ -274,49 +274,49 @@ const std::unordered_map<std::string_view, unsigned> info_map = {
 };
 }
 
-void disableOption(std::vector<bool> &enabledRows, std::string_view option)
+void disable_option(std::vector<bool> &enabled_rows, std::string_view option)
 {
     auto itr = info::info_map.find(option);
     if (itr != info::info_map.cend()) {
-        enabledRows[itr->second] = false;
+        enabled_rows[itr->second] = false;
     }
 }
 
-void disableOptions(std::vector<bool> &enabledRows, std::string_view options)
+void disable_options(std::vector<bool> &enabled_rows, std::string_view options)
 {
     size_t idx = 0;
     size_t prev_idx = 0;
     while ((idx = options.find(',', prev_idx)) != std::string_view::npos) {
         auto opt = options.substr(prev_idx, idx - prev_idx);
-        disableOption(enabledRows, opt);
+        disable_option(enabled_rows, opt);
         prev_idx = idx+1;
     }
 
     auto opt = options.substr(prev_idx);
-    disableOption(enabledRows, opt);
+    disable_option(enabled_rows, opt);
 }
 
-void draw_labels(const std::vector<bool> &enabledRows)
+void draw_labels(const std::vector<bool> &enabled_rows)
 {
     int row = vpad-1;
 
     set_color(color::type::label);
-    if (enabledRows[info::busy]) mvaddstr(++row, hpad, "GPU busy:");
-    if (enabledRows[info::vram]) mvaddstr(++row, hpad, "GPU vram:");
-    if (enabledRows[info::gtt]) mvaddstr(++row, hpad, "GTT:");
-    if (enabledRows[info::cpu_vis]) mvaddstr(++row, hpad, "CPU Vis:");
-    if (enabledRows[info::power]) mvaddstr(++row, hpad, "Power draw:");
-    if (enabledRows[info::temperature]) mvaddstr(++row, hpad, "Temperature:");
-    if (enabledRows[info::fan]) mvaddstr(++row, hpad, "Fan speed:");
-    if (enabledRows[info::voltage]) mvaddstr(++row, hpad, "Voltage:");
-    if (enabledRows[info::gfx_clock]) mvaddstr(++row, hpad, "GFX clock:");
-    if (enabledRows[info::mem_clock]) mvaddstr(++row, hpad, "Mem clock:");
-    if (enabledRows[info::link_speed]) mvaddstr(++row, hpad, "Link speed:");
-    if (enabledRows[info::link_width]) mvaddstr(++row, hpad, "Link width:");
+    if (enabled_rows[info::busy]) mvaddstr(++row, hpad, "GPU busy:");
+    if (enabled_rows[info::vram]) mvaddstr(++row, hpad, "GPU vram:");
+    if (enabled_rows[info::gtt]) mvaddstr(++row, hpad, "GTT:");
+    if (enabled_rows[info::cpu_vis]) mvaddstr(++row, hpad, "CPU Vis:");
+    if (enabled_rows[info::power]) mvaddstr(++row, hpad, "Power draw:");
+    if (enabled_rows[info::temperature]) mvaddstr(++row, hpad, "Temperature:");
+    if (enabled_rows[info::fan]) mvaddstr(++row, hpad, "Fan speed:");
+    if (enabled_rows[info::voltage]) mvaddstr(++row, hpad, "Voltage:");
+    if (enabled_rows[info::gfx_clock]) mvaddstr(++row, hpad, "GFX clock:");
+    if (enabled_rows[info::mem_clock]) mvaddstr(++row, hpad, "Mem clock:");
+    if (enabled_rows[info::link_speed]) mvaddstr(++row, hpad, "Link speed:");
+    if (enabled_rows[info::link_width]) mvaddstr(++row, hpad, "Link width:");
     remove_color(color::type::label);
 }
 
-void printHelp(std::string_view progName)
+void print_help(std::string_view progName)
 {
     std::cout << "Usage: " << progName << " [options]\n"
         "Released under the GNU GPLv3\n\n"
@@ -330,13 +330,13 @@ void printHelp(std::string_view progName)
         "                      link_width. Other values are silently ignored.\n";
 }
 
-void handle_winch(const std::vector<bool> &enabledRows)
+void handle_winch(const std::vector<bool> &enabled_rows)
 {
     winsize w;
     ioctl(0, TIOCGWINSZ, &w);
     resizeterm(w.ws_row, w.ws_col);
     clear();
-    draw_labels(enabledRows);
+    draw_labels(enabled_rows);
 }
 
 volatile sig_atomic_t should_close = 0;
@@ -367,13 +367,13 @@ int main(int argc, char **argv)
 
     int sleep_time = 2;
 
-    std::vector<bool> enabledRows(info::row_count, true);
+    std::vector<bool> enabled_rows(info::row_count, true);
 
     int c;
     while ((c = getopt_long(argc, argv, "hnu:d:", options, nullptr)) != -1) {
         switch (c) {
         case 'h':
-            printHelp(argv[0]);
+            print_help(argv[0]);
             return EXIT_SUCCESS;
         case 'n':
             color::use_color = false;
@@ -382,14 +382,14 @@ int main(int argc, char **argv)
             sleep_time = std::stoi(optarg);
             break;
         case 'd':
-            disableOptions(enabledRows, optarg);
+            disable_options(enabled_rows, optarg);
             break;
         default:
             return EXIT_FAILURE;
         }
     }
 
-    if (std::all_of(enabledRows.cbegin(), enabledRows.cend(), [](auto b){return !b;})) {
+    if (std::all_of(enabled_rows.cbegin(), enabled_rows.cend(), [](auto b){return !b;})) {
         std::cout << "All rows disabled. Exiting." << std::endl;
         return EXIT_SUCCESS;
     }
@@ -418,7 +418,7 @@ int main(int argc, char **argv)
         init_pair(static_cast<int>(color::type::bad), COLOR_RED, -1);
     }
 
-    draw_labels(enabledRows);
+    draw_labels(enabled_rows);
 
     const auto text_len = 13 + hpad;
 
@@ -426,73 +426,73 @@ int main(int argc, char **argv)
 
     while (!should_close) {
         if (should_resize) {
-            handle_winch(enabledRows);
+            handle_winch(enabled_rows);
             should_resize = 0;
         }
 
         int bar_width = COLS - text_len - hpad;
         int row = vpad-1;
 
-        if (enabledRows[info::busy]) {
+        if (enabled_rows[info::busy]) {
             auto [busy, busy_pc] = dev.busy();
             draw_bar(++row, text_len, bar_width, busy_pc, busy);
         }
 
-        if (enabledRows[info::vram]) {
+        if (enabled_rows[info::vram]) {
             auto [mem, mem_pc] = dev.vram();
             draw_bar(++row, text_len, bar_width, mem_pc, mem);
         }
 
-        if (enabledRows[info::gtt]) {
+        if (enabled_rows[info::gtt]) {
             auto [gtt, gtt_pc] = dev.gtt();
             draw_bar(++row, text_len, bar_width, gtt_pc, gtt);
         }
 
-        if (enabledRows[info::cpu_vis]) {
+        if (enabled_rows[info::cpu_vis]) {
             auto [vis, vis_pc] = dev.vis_vram();
             draw_bar(++row, text_len, bar_width, vis_pc, vis);
         }
 
-        if (enabledRows[info::power]) {
+        if (enabled_rows[info::power]) {
             auto [pwr, pwr_pc] = dev.power();
             draw_bar(++row, text_len, bar_width, pwr_pc, pwr);
         }
 
-        if (enabledRows[info::temperature]) {
+        if (enabled_rows[info::temperature]) {
             auto [temp, temp_pc] = dev.temperature();
             draw_bar(++row, text_len, bar_width, temp_pc, temp);
         }
 
-        if (enabledRows[info::fan]) {
+        if (enabled_rows[info::fan]) {
             auto [fan, fan_pc] = dev.fan();
             draw_bar(++row, text_len, bar_width, fan_pc, fan);
         }
 
-        if (enabledRows[info::voltage]) {
+        if (enabled_rows[info::voltage]) {
             move(++row, text_len);
             clrtoeol();
             print_string(color::type::label, dev.voltage(), A_BOLD);
         }
 
-        if (enabledRows[info::gfx_clock]) {
+        if (enabled_rows[info::gfx_clock]) {
             move(++row, text_len);
             clrtoeol();
             print_string(color::type::label, dev.gfx_clock(), A_BOLD);
         }
 
-        if (enabledRows[info::mem_clock]) {
+        if (enabled_rows[info::mem_clock]) {
             move(++row, text_len);
             clrtoeol();
             print_string(color::type::label, dev.mem_clock(), A_BOLD);
         }
 
-        if (enabledRows[info::link_speed]) {
+        if (enabled_rows[info::link_speed]) {
             move(++row, text_len);
             clrtoeol();
             print_string(color::type::label, dev.link_speed(), A_BOLD);
         }
 
-        if (enabledRows[info::link_width]) {
+        if (enabled_rows[info::link_width]) {
             move(++row, text_len);
             clrtoeol();
             print_string(color::type::label, dev.link_width(), A_BOLD);
