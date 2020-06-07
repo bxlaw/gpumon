@@ -324,7 +324,7 @@ void printHelp(std::string_view progName)
         "  -u, --update=N      set automatic updates to N seconds (default 2)\n"
         "  -h, --help          display this message\n"
         "  -d, --disable=ROWS  disable each row corresponding to the comma\n"
-        "                      seperated list ROWS. Valid options are busy,\n"
+        "                      separated list ROWS. Valid options are busy,\n"
         "                      vram, gtt, cpu_vis, power, temperature, fan,\n"
         "                      voltage, gfx_clock, mem_clock, link_speed and\n"
         "                      link_width. Other values are silently ignored.\n";
